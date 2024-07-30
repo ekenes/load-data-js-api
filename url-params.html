@@ -1,0 +1,97 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Load a basic WebMap | Sample | ArcGIS Maps SDK for JavaScript 4.30</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" />
+
+    <script src="https://js.arcgis.com/4.30/"></script>
+
+    <script>
+      require(["esri/views/MapView", "esri/WebMap"], (MapView, WebMap) => {
+
+
+        const defaultItemId = "93d14bfd59a84af0be99a883feba052b";
+
+        function getUrlParams() {
+          const queryParams = document.location.search.substr(1);
+          let result = {};
+
+          console.log(queryParams);
+
+          queryParams.split("&").forEach(function (part) {
+            var item = part.split("=");
+            result[item[0]] = decodeURIComponent(item[1]);
+          });
+
+          return result;
+        }
+
+        // function to set an id as a url param
+        function setUrlParams(id, layerId, portal) {
+          window.history.pushState(
+            "",
+            "",
+            `${window.location.pathname}?id=${id}&layerId=${layerId}&portal=${portal}`
+          );
+        }
+
+        let { id, portal, layerId } = getUrlParams();
+
+        if (!id) {
+          id = defaultItemId;
+        }
+
+        if (!layerId) {
+          layerId = 0;
+        }
+
+        if (!portal) {
+          portal = "https://www.arcgis.com/";
+        }
+
+        setUrlParams(id, layerId, portal);
+
+        const webmap = new WebMap({
+          portalItem: { id }
+        });
+
+        const view = new MapView({
+          map: webmap,
+          container: "viewDiv"
+        });
+
+        view.when().then(async () => {
+          const layerIndex = parseInt(layerId);
+          const layer = webmap.layers.getItemAt(layerIndex);
+
+          // const { extent } = await layer.queryExtent();
+          // view.goTo(extent);
+
+          await layer.when();
+          console.log(layer.fields);
+
+          webmap.layers.forEach((layer, index) => {
+            layer.visible = index === layerIndex;
+          });
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>
